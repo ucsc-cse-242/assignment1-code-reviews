@@ -103,9 +103,9 @@ def coin_estimates(heads=3, tosses=5):
     # YOUR CODE HERE
     # from pdf using output relative to input example
     mle = heads/tosses
-    map = (heads+1) / (tosses+1)
+    mapa = (heads+1) / (tosses+1)
 
-    return mle, map
+    return mle, mapa
 
 
 # P2 Q4: Derive both Gaussian MLEs for [1,3,5,7] step by step.
