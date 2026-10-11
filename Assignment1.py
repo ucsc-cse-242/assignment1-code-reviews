@@ -6,6 +6,7 @@ Functions must not mutate inputs, prompt for input, or perform network I/O.
 Only code inside the main guard should save/show figures.
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 # PART 1 (20 points), Q1: Show computations for the given A and B.
@@ -102,19 +103,43 @@ def gaussian_map(x=5., observation_variance=4., prior_mean=0., prior_variance=1.
 # YOUR ANSWER HERE
 
 # P3 Q2: Describe the Gaussian generator and observed correlation.
-# YOUR ANSWER HERE
+# Looking at the results of a call to generate_data() using all default parameter values, we can observe 
+# the expected behavior from the default mean vector and covariance matrix. We can see that the data does indeed
+# tend to center around an x of 2 (for f1) and a y of -1 (for f2). Additionally, we can observe that the data seems
+# to have a strong positive correlation, consistent with the positive of covariance given in the default matrix of 1.2. 
+# Lastly, we can see that the variance for each feature seems roughly reflected in the resulting scatter plot. 
+# f1, which has an input variance of 3, spreads much more than that of f2, which has a variance of only 2. 
 def generate_data(n_samples=500, seed=0, mean=None, covariance=None):
     """Return reproducible Gaussian samples (n_samples,2) using NumPy and seed.
 
     Defaults: mean=[2,-1], covariance=[[3,1.2],[1.2,1]]. Custom mean has shape
     (2,), covariance (2,2) is positive definite. Do not mutate input arrays.
     """
-    # YOUR CODE HERE
-    raise NotImplementedError()
+    if not mean:
+        mean = [2,-1]
+    if not covariance:
+        covariance = [[3,1.2],[1.2,1]]
+    random = np.random.default_rng(seed)
+    dataset = random.multivariate_normal(mean, covariance, size=n_samples)
+    plt.scatter(dataset[:, 0], dataset[:, 1], alpha=0.5)
+    plt.xlabel("gaussian f1")
+    plt.ylabel("gaussian f2")
+    plt.title("gaussian feature correlation")
+    plt.show()
+
+    return dataset
 
 
 # P3 Q3: Link centering/covariance/eigendecomposition to the derivation and explain the plot.
-# YOUR ANSWER HERE
+# Centering the data around zero makes it easier to see how much the data varies in different directions. The covariance
+# is calculated in order to find sigma, which is then used to find the principal components. To find the principal components,
+# which are vectors in which the variance is greatest, we can use the derivation from P3 Q1 that maximizes u.T@Sigma@u. Since 
+# we know @Sigma@ to be the covariance matrix, our earlier calculation comes in handy. By definition, an eigenvector u of the
+# covariance matrix @Sigma@ satisfies @Sigma@*u = lambda*u. Because of this, as long as we can find the eigenvectors of the 
+# highest eigenvalue, we'll be able to find the eigenvectors of the highest variance, by sorting from highest eigenvalue. The plot
+# shows the data transformed to be plotted along the vectors that produces the highest variances and produce zero covariance. We 
+# can see this demonstrated in the produced plot, as the plot shows and blob centered at zero without an obvious trend or correlation
+# between the axes. 
 def pca(X):
     """Fit NumPy PCA without mutating finite X of shape (n,2), n>=2.
 
@@ -124,20 +149,54 @@ def pca(X):
     Signs/tied-eigenspace bases are free. Include rank-deficient and tied cases.
     NumPy eigh/SVD are allowed; fitted library PCA is not.
     """
-    # YOUR CODE HERE
-    raise NotImplementedError()
+    # Center your dataset (mean subtraction)
+    mean = np.mean(X, axis=0)
+    centered = X - mean
+
+    # Compute the covariance matrix
+    covariance = np.cov(centered, rowvar=False)
+
+    # Find eigenvalues and eigenvectors of the covariance matrix
+    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+
+    # Select the principal components corresponding to the highest eigenvalues
+    # sort into descending eigenvalues, then sort eigenvalues and eigenvectors in the same order, then calculate PCA scores
+    indices = np.argsort(eigenvalues)[::-1]
+    eigenvalues = eigenvalues[indices]
+    components = eigenvectors[:, indices]
+    scores = centered @ components
+
+    # scatter plot with selected principal components
+    plt.scatter(scores[:, 0], scores[:, 1], alpha=0.5)
+    plt.xlabel("principal component 1")
+    plt.ylabel("principal component 2")
+    plt.title("data plotted against principal components 1 and 2")
+    plt.show()
+
+    return {
+        "mean": mean,
+        "centered": centered,
+        "covariance": covariance,
+        "eigenvalues": eigenvalues,
+        "components": components,
+        "scores": scores
+    }
+
 
 
 # P3 Q4: Interpret the variance fractions and dimensionality reduction tradeoff.
-# YOUR ANSWER HERE
+# The variance fractions explain what fraction of the total variance a principal component captures. So if PC1 captured
+# 90% of the variance and PC2 the other 10%, getting rid of PC2 would also get rid of the direction that accounts for
+# 10% of the dataset's variation. The good thing about reducing by a dimension is that should be able to capture most of a dataset's 
+# variation with fewer axes, however you do lose a bit of the variance represented in the subtracted axis. Similarly, not reducing the 
+# dimensions leads to more complexity in the representation of the dataset, however you can get the full picture of the variance. 
 def explained_variance(eigenvalues):
     """Return same-shape fractions for nonnegative eigenvalues with positive sum."""
-    # YOUR CODE HERE
-    raise NotImplementedError()
+    return eigenvalues / np.sum(eigenvalues)
 
 
 # P3 Q2/Q3/Q4: Provide labeled figures and discuss their meaning.
-# YOUR ANSWER HERE
+# I had the original functions plot the figures before returning. Hopefully that's ok!
 def make_plots(X, result):
     """Return a Matplotlib Figure (or sequence of Figures), without show/save.
 
@@ -149,9 +208,18 @@ def make_plots(X, result):
 
 
 # REFLECTION: contributions, tasks completed, and external resources used.
-# YOUR ANSWER HERE
+# I had some help from (not a class tutor, but my friend) Evan Chen to help re-teach me some of the linear algebra
+# basics, however all solutions and answers for that section were done by me and only me. In part 2, all of the work
+# was done by me, some Google-ing and referencing class slides were done because I forgot stuff like how to calculate
+# the MLE, MAP, and what the formula for the Gaussian PDF was (it's been a while). In part 3, I used ChatGPT mostly
+# to ask about how to generate datasets according to a certain distribution and also referenced its response on how to 
+# calculate the covariance matrix in numpy. ChatGPT was also used for the interpretation of the process to find the PCA
+# scores, since it wasn't immediately obvious to me what the link between the steps and and derivation were, as well 
+# as how to interpret the variance fractions. 
 
 if __name__ == '__main__':
     # YOUR CODE HERE: call your functions and save/display the requested figures.
+    # this block wasn't used, since I wrote most of the assignment by hand. Testing functions was done through the Python
+    # interactive terminal. 
     # This block does not run when the grader imports your functions.
     pass
