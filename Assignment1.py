@@ -6,6 +6,7 @@ Functions must not mutate inputs, prompt for input, or perform network I/O.
 Only code inside the main guard should save/show figures.
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 # PART 1 (20 points), Q1: Show computations for the given A and B.
@@ -17,7 +18,15 @@ def matrix_operations(A=None, B=None):
     real matrices of matching size. Return a tuple in the specified order.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    return (
+        A@B,
+        B@A,
+        (A+B).T,
+        A@B.T,
+        np.trace(A),
+        np.trace(A@B),
+    )
 
 
 # P1 Q2: Derive the given M eigenpairs and verify Mv=lambda*v.
@@ -29,7 +38,14 @@ def eigensystem(M=None):
     are free. Vectors must span each eigenspace, including repeated roots.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    val, vec = np.linalg.eig(M)
+    for i in range(len(val)):
+        # print(val[i], vec[:, i])
+        # print(M @ vec[:, i])
+        # print(val[i] * vec[:, i])
+        assert (M @ vec[:, i] == val[i] * vec[:, i]).all
+    return val, vec
 
 
 # P1 Q3: Prove trace(AB)=trace(BA) for compatible matrices.
@@ -40,7 +56,8 @@ def eigensystem(M=None):
 def matrix_inverse(C=None):
     """Return inverse of nonsingular square C; default C=[[4,7],[2,6]]."""
     # YOUR CODE HERE
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    return np.linalg.inv(C)
 
 
 # PART 2 (50 points), Q1: Normalize c*3**k/k!, derive expectation and variance.
@@ -110,7 +127,47 @@ def generate_data(n_samples=500, seed=0, mean=None, covariance=None):
     (2,), covariance (2,2) is positive definite. Do not mutate input arrays.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    # raise ValueError("mean and covariance are not specified.")
+    if mean is None:
+        mean = [2, -1]
+    mean = np.asarray(mean, dtype=float).copy()
+    if mean.shape != (2,):
+        raise ValueError("mean must have shape (2,).")
+    if not np.isfinite(mean).all():
+        raise ValueError("mean must contain only finite values.")
+
+    if covariance is None:
+        covariance = [[3, 1.2], [1.2, 1]]
+    covariance = np.asarray(covariance, dtype=float).copy()
+    if covariance.shape != (2, 2):
+        raise ValueError("covariance must have shape (2,2).")
+    if not np.isfinite(covariance).all():
+        raise ValueError("covariance must contain only finite values.")
+
+    # Main
+    rng = np.random.default_rng(seed)
+    data = rng.multivariate_normal(
+        mean=mean,
+        cov=covariance,
+        size=n_samples
+    )
+
+    # Visualize
+    plt.scatter(
+        data[:, 0],
+        data[:, 1],
+        alpha=0.5
+    )
+    plt.title("Synthetic 2-dimensional correlated Gaussian features")
+    plt.xlabel("feature 1")
+    plt.ylabel("feature 2")
+    plt.axis("equal")
+    print("sample correlation", np.corrcoef(data[:, 0], data[:, 1])[0, 1])
+
+    return data
+
+# data = generate_data(mean=[2,-1], covariance=[[3,1.2],[1.2,1]])
 
 
 # P3 Q3: Link centering/covariance/eigendecomposition to the derivation and explain the plot.
@@ -125,7 +182,70 @@ def pca(X):
     NumPy eigh/SVD are allowed; fitted library PCA is not.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    X = np.asarray(X, dtype=float)
+    if X.ndim != 2:
+        raise ValueError(f"Illegal dimension of X: {X.ndim}.")
+    if X.shape[0] < 2:
+        raise ValueError("X must have at least 2 samples.")
+    if X.shape[1] != 2:
+        raise ValueError("X must have 2 features.")
+    if not np.isfinite(X).all():
+        raise ValueError("X must contain only finite values.")
+
+    # Center the dataset
+    # Links to X - E(X) in Q1, using the sample mean
+    mean = np.mean(X, axis=0)
+    centered = X - mean
+
+    # Compute the sample covariance matrix
+    # Links to \Sigma = E[(X-E(X)) (X-E(X))^T] in Q1, using the sample estimate
+    covariance = (
+        centered.T @ centered
+        / (X.shape[0] - 1)
+    )
+
+    # Find eigenvalues and eigenvectors of the covariance matrix
+    # (rank-deficient and tied cases are handled.)
+    # Links to Var(u^T X) = u^T \Sigma u in Q1 and the extension in Q3 (see PDF);
+    # finds orthonormal vectors u that successively maximize u^T S u
+    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+
+    # Select the principal components corresponding to the highest eigenvalues
+    # (Reordering here because np.linalg.eigh returns ascending order)
+    reorder = np.argsort(eigenvalues)[::-1]
+    eigenvalues = eigenvalues[reorder]
+    components = eigenvectors[:, reorder]
+
+    # Project centered data onto principal components
+    # j-th column of scores is the projection onto j-th principal component direction
+    # Links to the projection u^T (X-E(X)) in Q1
+    scores = centered @ components
+
+    # Visualize
+    plt.scatter(X[:, 0], X[:, 1], s=20, alpha=0.5)
+    plt.title("PCA on synthetic 2-dimensional correlated Gaussian features")
+    plt.xlabel("feature 1")
+    plt.ylabel("feature 2")
+    plt.axis("equal")
+    for j, l in enumerate(eigenvalues):
+        direction = components[:, j]
+        start = mean
+        end = mean - np.sqrt(l) * direction
+        plt.plot([start[0], end[0]], [start[1], end[1]],
+                 label=f"PC {j+1}", lw=2.5, color=('red', 'lime')[j])
+    plt.legend()
+
+    return {
+        "mean": mean,
+        "centered": centered,
+        "covariance": covariance,
+        "eigenvalues": eigenvalues,
+        "components": components,
+        "scores": scores,
+    }
+
+# result = pca(data)
 
 
 # P3 Q4: Interpret the variance fractions and dimensionality reduction tradeoff.
@@ -133,7 +253,11 @@ def pca(X):
 def explained_variance(eigenvalues):
     """Return same-shape fractions for nonnegative eigenvalues with positive sum."""
     # YOUR CODE HERE
-    raise NotImplementedError()
+    # raise NotImplementedError()
+    eigenvalues = np.asarray(eigenvalues, dtype=float)
+    if (eigenvalues < 0).any() or eigenvalues.sum() <= 0:
+        raise ValueError("eigenvalues must be nonnegative with positive sum.")
+    return eigenvalues / eigenvalues.sum()
 
 
 # P3 Q2/Q3/Q4: Provide labeled figures and discuss their meaning.
@@ -145,7 +269,31 @@ def make_plots(X, result):
     variance fractions. Label axes. Plot quality is manually reviewed.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    # raise NotImplementedError()
+
+    # Q4 plot
+    _explained_variance = np.concatenate((
+        np.array([0]),
+        explained_variance(result['eigenvalues'])))
+    x = np.arange(len(_explained_variance))
+    reduced_dim = 1 - x / (len(x) - 1)
+
+    plt.title("trade-off between explained variance and dimensionality reduction")
+    plt.xlabel("Number of components")
+    plt.xticks(x)
+
+    plt.plot(x, reduced_dim, "s--", color="tab:blue", label="reduced dimension")
+    plt.ylabel("Proportion of dimensions reduced", color="tab:blue")
+    plt.tick_params(axis="y", labelcolor="tab:blue")
+
+    plt.twinx()
+    plt.plot(x, np.cumsum(_explained_variance), "o-", color="tab:orange", label="explained variance")
+    plt.ylabel("Cumulative explained variance", color="tab:orange")
+    plt.tick_params(axis="y", labelcolor="tab:orange")
+
+    # Q2/Q3's visualization codes are embeded in the corresponding functions for debugging
+
+# make_plots(data, result)
 
 
 # REFLECTION: contributions, tasks completed, and external resources used.
