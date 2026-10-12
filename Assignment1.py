@@ -6,8 +6,9 @@ Functions must not mutate inputs, prompt for input, or perform network I/O.
 Only code inside the main guard should save/show figures.
 """
 import numpy as np
+import pandas as pd
 
-
+# Testing 
 # PART 1 (20 points), Q1: Show computations for the given A and B.
 # YOUR ANSWER HERE
 def matrix_operations(A=None, B=None):
