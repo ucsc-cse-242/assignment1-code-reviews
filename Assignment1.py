@@ -5,116 +5,40 @@ at # YOUR CODE HERE. Keep signatures. See README.md and INTERFACE.md.
 Functions must not mutate inputs, prompt for input, or perform network I/O.
 Only code inside the main guard should save/show figures.
 """
+
 import numpy as np
+import matplotlib.pyplot as plt
 
-
-# PART 1 (20 points), Q1: Show computations for the given A and B.
-# YOUR ANSWER HERE
-def matrix_operations(A=None, B=None):
-    """Return AB, BA, (A+B).T, A@B.T, trace(A), trace(AB).
-
-    Defaults: A=[[3,4],[2,1]], B=[[1,2],[0,-1]]. Other inputs are square
-    real matrices of matching size. Return a tuple in the specified order.
-    """
-    # YOUR CODE HERE
-    raise NotImplementedError()
-
-
-# P1 Q2: Derive the given M eigenpairs and verify Mv=lambda*v.
-# YOUR ANSWER HERE
-def eigensystem(M=None):
-    """Return (values, vectors) for real symmetric M (default [[2,-1],[-1,2]]).
-
-    Vectors are columns paired with values; order, sign, and nonzero scale
-    are free. Vectors must span each eigenspace, including repeated roots.
-    """
-    # YOUR CODE HERE
-    raise NotImplementedError()
-
-
-# P1 Q3: Prove trace(AB)=trace(BA) for compatible matrices.
-# YOUR ANSWER HERE
-
-# P1 Q4: Show the given C is invertible, and compute its inverse step by step.
-# YOUR ANSWER HERE
-def matrix_inverse(C=None):
-    """Return inverse of nonsingular square C; default C=[[4,7],[2,6]]."""
-    # YOUR CODE HERE
-    raise NotImplementedError()
-
-
-# PART 2 (50 points), Q1: Normalize c*3**k/k!, derive expectation and variance.
-# YOUR ANSWER HERE
-def distribution_moments(rate=3.):
-    """Return (c, mean, variance) for P(X=k)=c*rate**k/k!, k>=0, rate>0."""
-    # YOUR CODE HERE
-    raise NotImplementedError()
-
-
-# P2 Q2: Show reasoning for intersection, conditional, and union probabilities.
-# YOUR ANSWER HERE
-def event_probabilities(p_a=.5, p_b=.3, p_a_given_b=.6):
-    """Return (P(A intersect B), P(B|A), P(A union B)).
-
-    Inputs describe a valid distribution with p_a,p_b>0.
-    """
-    # YOUR CODE HERE
-    raise NotImplementedError()
-
-
-# P2 Q3: Derive MLE/MAP for H,H,T,H,T, including the prior and maximization.
-# YOUR ANSWER HERE
-def coin_estimates(heads=3, tosses=5):
-    """Return (MLE, MAP) using prior density 2*theta on [0,1].
-
-    0<=heads<=tosses, positive integer tosses. Include boundary maxima.
-    """
-    # YOUR CODE HERE
-    raise NotImplementedError()
-
-
-# P2 Q4: Derive both Gaussian MLEs for [1,3,5,7] step by step.
-# YOUR ANSWER HERE
-def gaussian_mle(data=None):
-    """Return (mean MLE, variance MLE); default data=[1,3,5,7].
-
-    Other inputs are finite 1D samples of length>=2 with nonzero variance.
-    """
-    # YOUR CODE HERE
-    raise NotImplementedError()
-
-
-# P2 Q5: Derive the Gaussian posterior mode for the given observation/prior.
-# YOUR ANSWER HERE
-def gaussian_map(x=5., observation_variance=4., prior_mean=0., prior_variance=1.):
-    """Return posterior mode for one observation and a Gaussian mean prior.
-
-    Both variances are positive; inputs are variances, not standard deviations.
-    """
-    # YOUR CODE HERE
-    raise NotImplementedError()
-
-
-# P2 Q6: Prove Var(X)=E[X**2]-E[X]**2.
-# YOUR ANSWER HERE
-
-# PART 3 (30 points), Q1: Define covariance and derive Var(u.T@X)=u.T@Sigma@u.
-# YOUR ANSWER HERE
 
 # P3 Q2: Describe the Gaussian generator and observed correlation.
-# YOUR ANSWER HERE
+# The plot shows a strong positive correlation between feature 1 and 2. While there's some scattering, a regression line would capture the positive trend quite well.
 def generate_data(n_samples=500, seed=0, mean=None, covariance=None):
     """Return reproducible Gaussian samples (n_samples,2) using NumPy and seed.
 
     Defaults: mean=[2,-1], covariance=[[3,1.2],[1.2,1]]. Custom mean has shape
     (2,), covariance (2,2) is positive definite. Do not mutate input arrays.
     """
-    # YOUR CODE HERE
-    raise NotImplementedError()
+    # check for None, and apply defaults
+    if mean is None:
+        mean = np.array([2, -1])
+    if covariance is None:
+        covariance = np.array(
+            [
+                [3, 1.2],
+                [1.2, 1],
+            ]
+        )
+
+    rng = np.random.default_rng(seed)
+
+    # generate N-samples from 2d Gaussian
+    X = rng.multivariate_normal(mean, covariance, size=n_samples)
+
+    return X
 
 
 # P3 Q3: Link centering/covariance/eigendecomposition to the derivation and explain the plot.
-# YOUR ANSWER HERE
+# The plot shows 2 orthogonal principal component directions. Both pass through the dataset's mean.
 def pca(X):
     """Fit NumPy PCA without mutating finite X of shape (n,2), n>=2.
 
@@ -124,34 +48,88 @@ def pca(X):
     Signs/tied-eigenspace bases are free. Include rank-deficient and tied cases.
     NumPy eigh/SVD are allowed; fitted library PCA is not.
     """
-    # YOUR CODE HERE
-    raise NotImplementedError()
+    # get mean of each feature; center it
+    mean = np.mean(X, axis=0)
+    centered = X - mean
+
+    # calc covariance matrix; get eigen
+    covariance = (centered.T @ centered) / (len(X) - 1)
+    ei_val, ei_vec = np.linalg.eigh(covariance)
+
+    # sort eigenvalues, largest to smallest
+    order = np.argsort(ei_val)[::-1]
+    ei_val = ei_val[order]
+    ei_vec = ei_vec[:, order]
+
+    scores = centered @ ei_vec
+
+    return {
+        "mean": mean,
+        "centered": centered,
+        "covariance": covariance,
+        "eigenvalues": ei_val,
+        "components": ei_vec,
+        "scores": scores,
+    }
 
 
 # P3 Q4: Interpret the variance fractions and dimensionality reduction tradeoff.
-# YOUR ANSWER HERE
+# PC1 explains approx 89%, while PC2 explains 11%. Keeping only PC1 reduces data from 2 to 1 dimension, while retaining most of its variance. However, the remaining 11% would be lost, losing some information.
 def explained_variance(eigenvalues):
     """Return same-shape fractions for nonnegative eigenvalues with positive sum."""
-    # YOUR CODE HERE
-    raise NotImplementedError()
+    return eigenvalues / np.sum(eigenvalues)
 
 
 # P3 Q2/Q3/Q4: Provide labeled figures and discuss their meaning.
-# YOUR ANSWER HERE
+# The first plot shows the strongly positive correlation between Feature 1 and 2, and second plot shows proportion of total variance explained by each component.
 def make_plots(X, result):
     """Return a Matplotlib Figure (or sequence of Figures), without show/save.
 
     Plot samples and principal directions through their mean, and explained
     variance fractions. Label axes. Plot quality is manually reviewed.
     """
-    # YOUR CODE HERE
-    raise NotImplementedError()
+    # create 2 plots
+    fig, (ax, ax_var) = plt.subplots(1, 2)
+
+    ax.scatter(X[:, 0], X[:, 1], alpha=0.5)
+
+    mean = result["mean"]
+    ax.scatter(*mean, marker="x", label="mean")
+
+    # plot principal components
+    for i in range(2):
+        direction = result["components"][:, i]  # ei_vec
+        length = 2 * np.sqrt(max(result["eigenvalues"][i], 0))
+        start = mean - length * direction
+        end = mean + length * direction
+        ax.plot([start[0], end[0]], [start[1], end[1]], label=f"PC{i + 1}")
+
+    ax.set(xlabel="Feature 1", ylabel="Feature 2", title="PCA Directions")
+    ax.set_aspect("equal", adjustable="datalim")
+    ax.legend()
+
+    # ratio plot
+    ratios = explained_variance(result["eigenvalues"])
+    ax_var.bar(["PC1", "PC2"], ratios)
+    ax_var.set(xlabel="Principal Component", ylabel="Variance Ratio", title="Explained Variance")
+    ax_var.set_ylim(0, 1)
+
+    fig.tight_layout()
+    return fig
 
 
 # REFLECTION: contributions, tasks completed, and external resources used.
-# YOUR ANSWER HERE
+# Implemented Gaussian data generation, PCA using numpy, and visualizations of principal components and explained variance.
+# Used course lecture slides, numpy and matplotlib docs, as well as ChatGPT for conceptual explanations, coding guidance, and debugging.
+# ChatGPT Log: https://chatgpt.com/share/6aca9acf-421c-83ea-b3ff-18b74bd65cfc
 
-if __name__ == '__main__':
-    # YOUR CODE HERE: call your functions and save/display the requested figures.
+if __name__ == "__main__":
+    X = generate_data()  # 2d Gaussian
+    result = pca(X)
+
+    fig = make_plots(X, result)
+
+    plt.show()
+
     # This block does not run when the grader imports your functions.
     pass
