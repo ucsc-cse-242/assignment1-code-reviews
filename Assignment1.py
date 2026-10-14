@@ -1,9 +1,7 @@
-"""CSE 242 Assignment 1 — submit as Assignment1.py.
+"""
 
-Fill # YOUR ANSWER HERE blocks with commented reasoning; fill function bodies
-at # YOUR CODE HERE. Keep signatures. See README.md and INTERFACE.md.
-Functions must not mutate inputs, prompt for input, or perform network I/O.
-Only code inside the main guard should save/show figures.
+Derivations and discussion are in Assignment1.ipynb
+
 """
 import numpy as np
 
@@ -17,7 +15,13 @@ def matrix_operations(A=None, B=None):
     real matrices of matching size. Return a tuple in the specified order.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    A = np.array([[3., 4.], [2., 1.]]) if A is None else np.array(A, dtype=float)
+    B = np.array([[1., 2.], [0., -1.]]) if B is None else np.array(B, dtype=float)
+    AB = A @ B
+    BA = B @ A
+    sum_T = (A + B).T
+    ABt = A @ B.T
+    return AB, BA, sum_T, ABt, float(np.trace(A)), float(np.trace(AB))
 
 
 # P1 Q2: Derive the given M eigenpairs and verify Mv=lambda*v.
@@ -29,8 +33,9 @@ def eigensystem(M=None):
     are free. Vectors must span each eigenspace, including repeated roots.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
-
+    M = np.array([[2., -1.], [-1., 2.]]) if M is None else np.array(M, dtype=float)
+    values, vectors = np.linalg.eigh(M)
+    return values, vectors
 
 # P1 Q3: Prove trace(AB)=trace(BA) for compatible matrices.
 # YOUR ANSWER HERE
@@ -40,16 +45,16 @@ def eigensystem(M=None):
 def matrix_inverse(C=None):
     """Return inverse of nonsingular square C; default C=[[4,7],[2,6]]."""
     # YOUR CODE HERE
-    raise NotImplementedError()
-
+    C = np.array([[4., 7.], [2., 6.]]) if C is None else np.array(C, dtype=float)
+    return np.linalg.solve(C, np.eye(C.shape[0]))
 
 # PART 2 (50 points), Q1: Normalize c*3**k/k!, derive expectation and variance.
 # YOUR ANSWER HERE
 def distribution_moments(rate=3.):
     """Return (c, mean, variance) for P(X=k)=c*rate**k/k!, k>=0, rate>0."""
     # YOUR CODE HERE
-    raise NotImplementedError()
-
+    rate = float(rate)
+    return float(np.exp(-rate)), rate, rate
 
 # P2 Q2: Show reasoning for intersection, conditional, and union probabilities.
 # YOUR ANSWER HERE
@@ -59,8 +64,8 @@ def event_probabilities(p_a=.5, p_b=.3, p_a_given_b=.6):
     Inputs describe a valid distribution with p_a,p_b>0.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
-
+    p_ab = p_a_given_b * p_b
+    return p_ab, p_ab / p_a, p_a + p_b - p_ab
 
 # P2 Q3: Derive MLE/MAP for H,H,T,H,T, including the prior and maximization.
 # YOUR ANSWER HERE
@@ -70,7 +75,9 @@ def coin_estimates(heads=3, tosses=5):
     0<=heads<=tosses, positive integer tosses. Include boundary maxima.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    mle = heads / tosses
+    map_estimate = (heads + 1) / (tosses + 1)
+    return float(mle), float(map_estimate)
 
 
 # P2 Q4: Derive both Gaussian MLEs for [1,3,5,7] step by step.
@@ -81,8 +88,9 @@ def gaussian_mle(data=None):
     Other inputs are finite 1D samples of length>=2 with nonzero variance.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
-
+    x = np.array([1., 3., 5., 7.]) if data is None else np.array(data, dtype=float).ravel()
+    mu = x.mean()
+    return float(mu), float(np.mean((x - mu) ** 2))
 
 # P2 Q5: Derive the Gaussian posterior mode for the given observation/prior.
 # YOUR ANSWER HERE
@@ -92,8 +100,8 @@ def gaussian_map(x=5., observation_variance=4., prior_mean=0., prior_variance=1.
     Both variances are positive; inputs are variances, not standard deviations.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
-
+    return float((prior_variance * x + observation_variance * prior_mean)
+                 / (observation_variance + prior_variance))
 
 # P2 Q6: Prove Var(X)=E[X**2]-E[X]**2.
 # YOUR ANSWER HERE
@@ -110,8 +118,11 @@ def generate_data(n_samples=500, seed=0, mean=None, covariance=None):
     (2,), covariance (2,2) is positive definite. Do not mutate input arrays.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
-
+    mean = np.array([2., -1.]) if mean is None else np.array(mean, dtype=float)
+    covariance = (np.array([[3., 1.2], [1.2, 1.]]) if covariance is None
+                  else np.array(covariance, dtype=float))
+    rng = np.random.default_rng(seed)
+    return rng.multivariate_normal(mean, covariance, size=n_samples)
 
 # P3 Q3: Link centering/covariance/eigendecomposition to the derivation and explain the plot.
 # YOUR ANSWER HERE
@@ -125,15 +136,30 @@ def pca(X):
     NumPy eigh/SVD are allowed; fitted library PCA is not.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
-
+    X = np.asarray(X, dtype=float)
+    mean = X.mean(axis=0)
+    centered = X - mean
+    covariance = centered.T @ centered / (len(X) - 1)
+    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+    order = np.argsort(eigenvalues)[::-1]
+    eigenvalues = np.clip(eigenvalues[order], 0, None)
+    components = eigenvectors[:, order]
+    return {
+        'mean': mean,
+        'centered': centered,
+        'covariance': covariance,
+        'eigenvalues': eigenvalues,
+        'components': components,
+        'scores': centered @ components,
+    }
 
 # P3 Q4: Interpret the variance fractions and dimensionality reduction tradeoff.
 # YOUR ANSWER HERE
 def explained_variance(eigenvalues):
     """Return same-shape fractions for nonnegative eigenvalues with positive sum."""
     # YOUR CODE HERE
-    raise NotImplementedError()
+    ev = np.array(eigenvalues, dtype=float)
+    return ev / ev.sum()
 
 
 # P3 Q2/Q3/Q4: Provide labeled figures and discuss their meaning.
@@ -145,7 +171,34 @@ def make_plots(X, result):
     variance fractions. Label axes. Plot quality is manually reviewed.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    import matplotlib.pyplot as plt
+    X = np.asarray(X)
+    mean, vals, vecs = result['mean'], result['eigenvalues'], result['components']
+    frac = explained_variance(vals)
+    colors = ['maroon', 'blue']
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    # Original data + principal directions
+    ax1.scatter(X[:, 0], X[:, 1], s=10, alpha=0.4, label='samples')
+    for k in range(2):
+        v = vecs[:, k] * 2 * np.sqrt(vals[k])
+        ax1.annotate('', xy=mean + v, xytext=mean,
+                     arrowprops=dict(arrowstyle='->', lw=2.5, color=colors[k]))
+        ax1.plot([], [], color=colors[k], lw=2.5, label=f'PC{k+1} ($\\lambda$={vals[k]:.2f})')
+    ax1.set_aspect('equal', adjustable='datalim')
+    ax1.set_xlabel('$x_1$')
+    ax1.set_ylabel('$x_2$')
+    ax1.set_title('Data with principal directions')
+    ax1.legend()
+    # Explained variance
+    ax2.bar(['PC1', 'PC2'], frac, color=colors)
+    for i, f in enumerate(frac):
+        ax2.text(i, f + 0.02, f'{f:.1%}', ha='center')
+    ax2.set_ylim(0, 1.1)
+    ax2.set_xlabel('Principal component')
+    ax2.set_ylabel('Fraction of total variance')
+    ax2.set_title('Explained variance')
+    fig.tight_layout()
+    return fig
 
 
 # REFLECTION: contributions, tasks completed, and external resources used.
@@ -154,4 +207,37 @@ def make_plots(X, result):
 if __name__ == '__main__':
     # YOUR CODE HERE: call your functions and save/display the requested figures.
     # This block does not run when the grader imports your functions.
-    pass
+
+    print('Part 1')
+    print('Q1')
+    names = ['AB', 'BA', '(A+B)^T', 'AB^T', 'trace(A)', 'trace(AB)']
+    for name, val in zip(names, matrix_operations()):
+        print(f'  {name} =\n{val}')
+    print('Q2')
+    vals, vecs = eigensystem()
+    M = np.array([[2., -1.], [-1., 2.]])
+    print(vals, np.allclose(M @ vecs, vecs * vals))
+    print('Q4')
+    print(matrix_inverse())
+
+    print('Part 2')
+    print('Q1')
+    print(distribution_moments())
+    print('Q2')
+    print(event_probabilities())
+    print('Q3')
+    print(coin_estimates())
+    print('Q4')
+    print(gaussian_mle())
+    print('Q5')
+    print(gaussian_map())
+
+    print('Part 3')
+    X = generate_data()
+    result = pca(X)
+    print('sample correlation:', np.corrcoef(X, rowvar=False)[0, 1])
+    print('eigenvalues:', result['eigenvalues'])
+    print('components:', result['components'])
+    print('explained variance ratio:', explained_variance(result['eigenvalues']))
+    fig = make_plots(X, result)
+    fig.savefig('pca_figures.png', dpi=150, bbox_inches='tight')
