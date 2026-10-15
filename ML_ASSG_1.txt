@@ -1,0 +1,337 @@
+//h1 Q1, linear algebra
+A = [3,4;2,1]
+B = [1,2;0,-1]
+
+AB = [3,2;2,3] // NOTE answer
+BA = [7,6;-2,-1] // NOTE answer
+(A+B)' = [4,2;6,0] // NOTE answer
+AB' = [11,-4;4,-1] // NOTE answer
+trace(A) = 4 // NOTE answer
+trace(B) = 0 // NOTE answer
+
+//h1 Q2
+M = [2,-1;-1,2]
+
+// find values, characteristic equation
+|M-λI| = 0
+(2-λ)(2-λ) - 1 = 0
+4-4λ+λ^2 - 1 = 0
+λ^2 - 4λ + 3 = 0
+λ = (4 +- sqrt(16 - 12))/2
+λ = 2 +- 1
+λ_1 = 1 // NOTE answer
+λ_2 = 3 // NOTE answer
+
+
+// find vector 1, v_1
+(M- λ_1*I) = [1,-1;-1,1]
+[1,-1;-1,1][1;v_y] = 0
+[1-v_y;v_y-1] = 0
+v_y = 1
+v_1 = [1;1] // NOTE answer
+
+// find vector 2
+(M-λ_2*I) = [-1,-1;-1,-1]
+[-1,-1;-1,-1][1;v_y] = 0
+[-1-v_y;-1-v_y] = 0
+v_y = -1
+v_2 = [1;-1] // NOTE answer
+
+// solution verification
+Mv = λv
+
+[2,-1;-1,2][1;1] = [1;1]
+1*[1;1] = [1;1]
+
+[2,-1;-1,2][-1;1] = [-3;3]
+3*[-1;1] = [-3;3]
+
+//h1 Q3
+prove: trace(AB) = trace(BA)
+
+AB_ii = Σ_j (A_ij B_ji)
+BA_jj = Σ_i (B_ji A_ij) // using j instead of i for later
+
+trace(AB) = Σ_i (AB_ii)
+trace(AB) = Σ_i (Σ_j (A_ij B_ji))
+trace(AB) = Σ_i (Σ_j (B_ji A_ij))
+trace(AB) = Σ_j (Σ_i (B_ji A_ij)) // sums can be swapped
+trace(AB) = Σ_j (BA_jj)
+trace(AB) = trace(BA)
+
+//h1 Q4
+C = [4,7;2,6]
+|C| = 24-14 = 10
+// inverse exists because det != 0
+Cinv = [6,-7;-2,4] / 10
+Cinv = [0.6,-0.7;-0.2,0.4]
+
+//h1 Q1, probability
+P(X=k) = c*(3^k)/k!, k is 0,1,2...
+
+//h2 find c
+// maclaurin expansion for e^x
+e^x = Σ_k (x^k)/k!
+c*e^3 = Σ_k c*(3^k)/k!
+// find total mass of PMF
+Σ_k c*(3^k)/k! = 1
+c*e^3 = 1
+c = 1/(e^3)
+
+//h2 compute E[X] and Var(X)
+// find E[X]
+E[X] = Σ_k_0^inf P(X=k)*k
+E[X] = Σ_k_0^inf (3^k)/(k!) * 1/(e^3) * k
+E[X] = Σ_k_1^inf (3^k)/(k!) * 1/(e^3) * k // k=0 term is now 0
+E[X] = Σ_k_0^inf (3^(k+1))/((k+1)!) * 1/(e^3) * (k+1) // shift every k
+E[X] = Σ_k_0^inf (3^(k+1))/(k!) * 1/(e^3) // decrement factorial
+E[X] = 3 * Σ_k_0^inf (3^k)/(k!) * 1/(e^3) // factor out a 3
+E[X] = 3/(e^3) * Σ_k_0^inf (3^k)/(k!) // factor out 1/(e^3)
+E[X] = 3/(e^3) * e^3 // Maclaurin expansion for e^3
+E[X] = 3
+
+// find Var[X]
+Var[X] = E[X^2] - E[X]^2
+
+E[X^2] = Σ_k_0^inf k^2 * (3^k)/(k!) * 1/(e^3)
+E[X^2] = Σ_k_1^inf k * (3^k)/((k-1)!) * 1/(e^3) // drop k=0, cancel one k
+E[X^2] = Σ_k_0^inf (k+1) * (3^(k+1))/(k!) * 1/(e^3) // shift k by 1
+E[X^2] = 3 * Σ_k_0^inf (k+1) * (3^k)/(k!) * 1/(e^3) // factor out 3
+E[X^2] = 3 * (Σ_k_0^inf k*P(X=k) + Σ P(X=k) ) // split (k+1)
+E[X^2] = 3 * ( E[X] + 1 ) = 3 * 4 = 12
+
+Var[X] = 12 - 3^2 = 3
+
+//h1 Q2
+P(A) = 0.5
+P(B) = 0.3
+P(A|B) = 0.6
+
+P(AB) = P(A|B)P(B) = 0.6*0.3 = 0.18
+P(B|A) = P(A|B)P(B)/P(A) = 0.6*0.3/0.5 = 0.36
+P(A or B) = P(A)+P(B)-P(AB) = 0.5+0.3-0.18 = 0.62
+
+//h1 Q3
+θ = P(H)
+
+Data = H,H,T,H,T
+
+// get MLE
+MLE = maxarg_x(P(Data|θ=x))
+
+x*x*(1-x)*x*(1-x) = x^3(1-x)^2
+// take log to simplify work
+3log(x) + 2log(1-x)
+// take derivative and set to 0
+3/x - 2/(1-x) = 0
+3/x = 2/(1-x)
+3-3x = 2x
+3 = 5x
+x = 3/5
+MLE = 0.6
+
+// Get MAP
+prior = P(θ) = 2θ {0<= θ <= 1, else 0}
+
+MAP = maxarg_θ(P(Data|θ)*P(θ))
+AP = θ^3 * (1-θ)^2 * P(θ)
+(θ)^3 * (1-θ)^2 * 2θ
+// take log for easier calcs
+log(Likelihood) = 3log(θ)+2log(1-θ) + log(θ) + log(2)
+// take deriv and set 0
+3/θ + 2/(1-θ) * -1 + 1/θ = 0
+3/θ - 2/(1-θ) + 1/θ = 0
+4/θ = 2/(1-θ)
+4(1-θ) = 2θ
+4-4θ = 2θ
+θ = 4/6 = 2/3
+
+MAP = 2/3
+
+//h1 Q4
+gaussian with μ and σ^2
+D = 1,3,5,7
+
+// find MLE for μ and v (v = σ^2)
+L(μ,v) = Π_D 1/sqrt(2πv) * exp(-(D-μ)^2/(2v))
+L(μ,v) = Π_x_{1,3,5,7} 1/sqrt(2πv) * exp(-(x-μ)^2/(2v))
+// take log
+l = Σ_x_{1,3,5,7} log(1/sqrt(2πv) * exp(-(x-μ)^2/(2v)))
+l = Σ_x_{1,3,5,7} log(1/sqrt(2πv)) + log(exp(-(x-μ)^2/(2v)))
+l = Σ_x_{1,3,5,7} -0.5log(2πv) - (x-μ)^2/(2v)
+l = Σ_x_{1,3,5,7} -0.5(log(2) + log(π) + log(v)) - (x-μ)^2/(2v)
+
+// take partial deriv w.r.t μ and set 0
+∂l/∂μ = Σ_x_{1,3,5,7} (x-μ)/v = 0
+0 = (1-μ)/v + (3-μ)/v + (5-μ)/v + (7-μ)/v
+// multiply both sides by v
+0 = 1+3+5+7 - 4μ
+4μ = 16
+μ = 4
+
+// take partial deriv w.r.t v and set 0
+∂l/∂v = Σ_x_{1,3,5,7} -0.5/v - (x-μ)^2/2 * -1/(v^2) = 0
+0 = Σ_x_{1,3,5,7} -0.5/v + (x-μ)^2/(2v^2)
+// multiply both sides by 2v^2
+0 = Σ_x_{1,3,5,7} -v + (x-μ)^2
+// sub in μ
+0 = Σ_x_{1,3,5,7} -v + (x-4)^2
+0 = -4v + (1-4)^2 + (3-4)^2 + (5-4)^2 + (7-4)^2
+0 = -4v + 9 + 1 + 1 + 9
+4v = 20
+v = 5
+
+μ_MLE = 4
+ σ^2_MLE = 5
+
+//h1 Q5
+σ^2 = 4
+P(μ) = N(0, 1)
+P(μ) = 1/sqrt(2π) * exp(0-μ^2/2)
+Gaussian = 1/sqrt(2π*4) * exp(-(x-μ)^2/(2*4))
+single data sample {5}
+
+
+// calculate likelihood
+// there is only 1 sample, {5}
+L(μ) = 1/sqrt(8π) * exp(-(5-μ)^2/8)
+
+// calculate L*prior (AP)
+AP = L(μ)*{prior} = L(μ) * P(μ)
+L(μ)*{prior} = L(μ) * N(0,1)
+L(μ)*{prior} = L(μ) * 1/sqrt(2π) * exp(-μ^2/2)
+// substitute L(μ)
+L(μ)*{prior} = 1/sqrt(8π) * exp(-(5-μ)^2/8) * 1/sqrt(2π) * exp(-μ^2/2)
+// take log
+log(AP) = -log(8π)/2 - (5-μ)^2 / 8 - log(2π)/2 - μ^2 / 2
+log(AP) = -(5-μ)^2 / 8 - μ^2 / 2 - log(2π)/2 - log(8π)/2
+// take deriv and set 0
+0 = 2(5-μ)/8 - 2μ/2
+0 = (5-μ)/4 - μ
+0 = 5/4-μ/4 - μ
+0 = 5/4-5μ/4
+μ = 1
+
+μ_MAP = 1
+
+//h1 Q6
+prove:
+Var[X] = E[X^2] - E[X]^2
+
+Var[X] = E[(X - μ)^2]
+= E[X^2 - 2μX + μ^2]
+= E[X^2] - 2μE[X] + μ^2 // E is linear
+= E[X^2] - 2μ·μ + μ^2 // substitute E[X] for μ
+= E[X^2] - μ^2
+= E[X^2] - E[X]^2
+
+//h1 Q1 PCA
+// we need to find the covariance matrix Σ
+
+// given
+Var(u' X) = u' Σ u
+
+// Y is the data, X, projected onto the unit vector, u
+Y = u' X
+
+// find mean of Y scalar projection
+E[Y] = E[u'X] = u' E[X] = u' μ_X // NOTE that μ_X is a vector, like X
+
+// find variance of Y
+Var[Y] = E[(Y-E[Y])^2] // def of variance
+= E[(u'X - u'μ_X)^2] // sub out Y and E[Y]
+= E[(u'(X-μ_X))^2] // factor out u'
+= E[(u'(X-μ_X))(u'(X-μ_X))'] // u'(X-μ_X) is a scalar and so, u'(X-μ_X) = (u'(X-μ_X))'
+= E[u'(X-μ_X)(X-μ_X)'u] // (AB)' = B'A'
+= u'E[(X-μ_X)(X-μ_X)']u // E[] is linear
+Σ = E[(X-μ_X)(X-μ_X)']
+
+//h1 Q2
+//python code
+```
+from random import sample
+import numpy as np
+import matplotlib.pyplot as plt
+
+mean = [0, 0]
+covariance_mat = [[3, 2], [2, 2]]
+
+# sample a multivariate normal distribution
+samples = np.random.multivariate_normal(mean, covariance_mat, 100)
+
+x = samples[:,0]
+y = samples[:,1]
+
+plt.scatter(x,y)
+plt.show()
+```
+it forms an elliptical shape
+
+//h1 Q3
+```
+from random import sample
+import numpy as np
+import matplotlib.pyplot as plt
+
+mean = [1, -1]
+covariance_mat = [[3, 2], [2, 2]]
+
+# sample a multivariate normal distribution
+samples = np.random.multivariate_normal(mean, covariance_mat, 100)
+
+x = samples[:, 0]
+y = samples[:, 1]
+
+plt.scatter(x, y)
+# plt.show()
+
+# center dataset
+samples_centered = samples - mean
+
+# compute covarience matrix
+centered_covar_mat = np.cov(samples.T)
+
+# find eigen values and vectors
+eigen_values, eigen_vectors = np.linalg.eigh(centered_covar_mat)
+
+# select PCA vectors
+pca1 = eigen_vectors[:, -1]
+pca2 = eigen_vectors[:, -2]
+```
+//h1 Q4
+```
+from random import sample
+import numpy as np
+import matplotlib.pyplot as plt
+
+mean = [1, -1]
+covariance_mat = [[3, 2], [2, 2]]
+
+# sample a multivariate normal distribution
+samples = np.random.multivariate_normal(mean, covariance_mat, 100)
+
+x = samples[:, 0]
+y = samples[:, 1]
+
+plt.scatter(x, y)
+# plt.show()
+
+# center dataset
+samples_centered = samples - mean
+
+# compute covarience matrix
+centered_covar_mat = np.cov(samples.T)
+
+# find eigen values and vectors
+eigen_values, eigen_vectors = np.linalg.eigh(centered_covar_mat)
+
+# select PCA vectors
+pca1 = eigen_vectors[:, -1]
+pca2 = eigen_vectors[:, -2]
+
+# Q4, compute varience projected onto pca 1 and 2
+pca1_variance = eigen_values[-1]
+pca2_variance = eigen_values[-2]
+print(pca1_variance, pca2_variance)
+# we can either have low dimensions, or more of our variance explained, but not both
+```
