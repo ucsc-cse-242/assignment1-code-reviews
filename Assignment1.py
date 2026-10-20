@@ -17,8 +17,75 @@ def matrix_operations(A=None, B=None):
     real matrices of matching size. Return a tuple in the specified order.
     """
     # YOUR CODE HERE
-    raise NotImplementedError()
+    # Inputs are assumed to be square matrices of matching size so im not validating parameters
+    mSize = len(A)
 
+    # AB
+    
+    ab = []
+
+    for i in range(mSize):
+        ab.append([])
+        for j in range(mSize):
+            ab[i].append(0)
+            for k in range(mSize):
+                ab[i][j] += A[i][k] *B[k][j]
+
+    
+    # BA
+    
+    ba = []
+
+    for i in range(mSize):
+        ba.append([])
+        for j in range(mSize):
+            ba[i].append(0)
+            for k in range(mSize):
+                ba[i][j] += B[i][k] * A[k][j]
+
+
+    # (A+B).T
+
+    apb = []
+
+    for i in range(mSize):
+        apb.append([])
+        for j in range(mSize):
+            apb[i].append(A[i][j] + B[i][j])
+
+    apbt = []
+
+    for i in range(mSize):
+        apbt.append([])
+        for j in range(mSize):
+            apbt[i].append(apb[j][i])
+
+
+    # AB.T
+
+    abt = []
+
+    for i in range(mSize):
+        abt.append([])
+        for j in range(mSize):
+            abt[i].append(ab[j][i])
+
+
+    # trace(A) 
+
+    ta = 0
+
+    for i in range(mSize):
+        ta += A[i][i]
+
+    # trace(AB) 
+
+    tab = 0
+
+    for i in range(mSize):
+        tab += ab[i][i]
+
+    return (ab, ba, apbt, abt, ta, tab)
 
 # P1 Q2: Derive the given M eigenpairs and verify Mv=lambda*v.
 # YOUR ANSWER HERE
@@ -29,17 +96,22 @@ def eigensystem(M=None):
     are free. Vectors must span each eigenspace, including repeated roots.
     """
     # YOUR CODE HERE
+    # See PDF
+
     raise NotImplementedError()
 
 
 # P1 Q3: Prove trace(AB)=trace(BA) for compatible matrices.
 # YOUR ANSWER HERE
+    # See PDF
 
 # P1 Q4: Show the given C is invertible, and compute its inverse step by step.
 # YOUR ANSWER HERE
 def matrix_inverse(C=None):
     """Return inverse of nonsingular square C; default C=[[4,7],[2,6]]."""
     # YOUR CODE HERE
+    # See PDF
+
     raise NotImplementedError()
 
 
@@ -48,6 +120,8 @@ def matrix_inverse(C=None):
 def distribution_moments(rate=3.):
     """Return (c, mean, variance) for P(X=k)=c*rate**k/k!, k>=0, rate>0."""
     # YOUR CODE HERE
+    # See PDF
+
     raise NotImplementedError()
 
 
@@ -59,6 +133,8 @@ def event_probabilities(p_a=.5, p_b=.3, p_a_given_b=.6):
     Inputs describe a valid distribution with p_a,p_b>0.
     """
     # YOUR CODE HERE
+    # See PDF
+
     raise NotImplementedError()
 
 
@@ -70,6 +146,8 @@ def coin_estimates(heads=3, tosses=5):
     0<=heads<=tosses, positive integer tosses. Include boundary maxima.
     """
     # YOUR CODE HERE
+    # See PDF
+
     raise NotImplementedError()
 
 
@@ -150,8 +228,14 @@ def make_plots(X, result):
 
 # REFLECTION: contributions, tasks completed, and external resources used.
 # YOUR ANSWER HERE
+# I only completed up to part 2 Q3. I used wikipedia and geeksforgeeks as external resources as well as claude (see pdf log).
 
 if __name__ == '__main__':
     # YOUR CODE HERE: call your functions and save/display the requested figures.
     # This block does not run when the grader imports your functions.
-    pass
+    A=[[3,4],[2,1]]
+    B=[[1,2],[0,-1]]
+
+    M = [[2,-1],[-1,2]]
+
+    print(eigensystem(M))
